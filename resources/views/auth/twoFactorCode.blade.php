@@ -12,7 +12,7 @@
 <div class="container-fluid full-height">
     <div class="row full-height">
         <div class="col-lg-7 col-md-6 col-12 d-flex flex-column">
-            <a class="logo">Practica</a>
+            <a class="logo">Proyecto 1</a>
             <div class="contenedorForm">
                 <span class="text1">Código de verificación</span>
 
