@@ -35,6 +35,14 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    
+                    <div class="form-group">
+                        <input type="password" class="form-control @error('password') is-invalid @enderror" name="password_confirmation" placeholder="Ingrese una contraseña (min. 8 caracteres)..." required>
+                        @error('password_confirmation')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="mb-3 mt-3">
                         {!! NoCaptcha::renderJs('es') !!}
                         {!! NoCaptcha::display() !!}

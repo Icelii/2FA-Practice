@@ -22,6 +22,8 @@
                         <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" placeholder="Ingresa el código de verificación..." value="{{ old('code') }}">
                     </div>
 
+                    <input type="hidden" name="signedUrl" value="{{ $signedUrl ?? old('signed_url') }}">
+
                     @if ($errors->has('message'))
                         <div class="invalid-feedback d-block mb-2">
                             {{ $errors->first('message') }}

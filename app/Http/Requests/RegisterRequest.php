@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * Clase que maneja la validación de los datos de registro de un nuevo usuario.
@@ -32,7 +33,16 @@ class RegisterRequest extends FormRequest
         return [
             'username' => 'required|string|max:150|unique:users,username',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+            ],
             'g-recaptcha-response' => 'required|captcha'
         ];
     }
@@ -52,6 +62,11 @@ class RegisterRequest extends FormRequest
             'username.unique' => 'El nombre de usuario ya está en uso.',
             'password.required' => 'La contraseña es obligatoria.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'password.letters' => 'La contraseña debe contener al menos una letra.',
+            'password.mixedCase' => 'La contraseña debe incluir mayúsculas y minúsculas.',
+            'password.numbers' => 'La contraseña debe contener al menos un número.',
+            'password.symbols' => 'La contraseña debe incluir al menos un símbolo especial.',
             'g-recaptcha-response.required' => 'Debe completar el reCAPTCHA.',
             'g-recaptcha-response.captcha' => 'La verificación reCAPTCHA ha fallado.'
         ];

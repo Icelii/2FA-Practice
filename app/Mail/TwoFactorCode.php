@@ -38,6 +38,9 @@ class TwoFactorCode extends Mailable
     public function build()
     {
         return $this->subject('Código de Verificación')
-            ->view('emails.twoFactor');
+        ->view('emails.twoFactor')
+        ->with([
+            'twoFactorCode' => $this->twoFactorCode,
+        ]);
     }
 }

@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Mail\Activation;
 use App\Mail\TwoFactorCode;
 use App\Models\User;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -25,7 +26,7 @@ class AuthController extends Controller
 {
     /**
      * Mostrar formulario de registro.
-     * Retorna la vista que contine el formulario de registro 
+     * Retorna la vista que contiene el formulario de registro 
      * para los nuevos usuarios.
      * 
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
@@ -63,10 +64,7 @@ class AuthController extends Controller
             ['email' => $user->email]
         );
 
-        Mail::send('emails.activationAccount', ['url' => $url], function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Activación de cuenta');
-        });
+        Mail::to($user->email)->send(new Activation($url));
     }
 
     /**
@@ -86,7 +84,7 @@ class AuthController extends Controller
         ]);
 
         Log::info("Usuario registrado", ['email' => $user->email]);
-        
+
         $this->sendActivationEmail($user);
 
         return redirect()->route('login.form')->with('success', 'Registro exitoso. Por favor, active su cuenta.');
@@ -119,14 +117,15 @@ class AuthController extends Controller
             'two_factor_expires_at' => now()->addMinutes(15),
         ]);
 
-        session([
-            'two_factor_user_id' => $user->id,
-            'two_factor_expires_at' => now()->addMinutes(15),
-        ]);
+        $signedUrl = URL::temporarySignedRoute(
+            'twofactor.verify',
+            now()->addMinutes(10),
+            ['email' => $user->email]
+        );
 
         Mail::to($user->email)->send(new TwoFactorCode($twoFactorCode));
 
-        return redirect()->route('twofactor.form');
+        return redirect()->route('twofactor.form')->with('signedUrl', $signedUrl);
     }
 
     /**
@@ -135,9 +134,10 @@ class AuthController extends Controller
      * 
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function twoFactorForm()
+    public function twoFactorForm(Request $request)
     {
-        return view('auth.twofactorCode');
+        $signedUrl = $request->session()->get('signedUrl');
+        return view('auth.twofactorCode', ["signedUrl" => $signedUrl]);
     }
 
     /**
@@ -150,19 +150,26 @@ class AuthController extends Controller
      */
     public function verifyTwoFactor(Request $request)
     {
-        if (session('two_factor_expires_at') < now()) {
-            Log::warning("Código de autenticación expirado", ['user_id' => session('two_factor_user_id')]);
-            return redirect()->route('twofactor.form')->withErrors(['message' => 'El código ha expirado.']);
+        $signedUrl = $request->input('signedUrl');
+
+        if(!$signedUrl){
+            return view('emails.error', ['message' => 'URL no valida.']);
         }
 
-        $user = User::find(session('two_factor_user_id'));
+        $url = Request::create($signedUrl, 'GET');
 
+        if(!$url->hasValidSignature()){
+            return view('emails.error', ['message' => 'Usuario no encontrado.']);
+        }
+
+        $email = $url->input('email');
+        $user = User::where('email', $email)->whereNotNull('email_verified_at')->first();
+        
         if (!$user || Crypt::decryptString($user->two_factor_code) !== $request->code) {
             Log::warning("Código de autenticación incorrecto", ['email' => $user->email ?? 'desconocido']);
             return redirect()->route('twofactor.form')->withErrors(['message' => 'Código incorrecto.']);
         }
 
-        session()->forget(['two_factor_code', 'two_factor_expires_at', 'two_factor_user_id']);
         Auth::login($user);
         Log::info("Usuario autenticado con éxito", ['email' => $user->email]);
 
@@ -172,6 +179,7 @@ class AuthController extends Controller
     /**
      * Cerrar sesión.
      * Cierra la sesión del usuario, invalida la sesión y genera un nuevo token CSRF.
+     * 
      * @param \Illuminate\Http\Request $request
      * @return mixed|\Illuminate\Http\RedirectResponse
      */

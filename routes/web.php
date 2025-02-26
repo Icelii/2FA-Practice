@@ -34,6 +34,6 @@ Route::get('/activate-account', [EmailController::class, 'activateAccount'])->na
 
 //Usuario autenticado.
 Route::middleware('auth')->group(function(){
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/', [HomeController::class, 'index'])->middleware('nocache')->name('home');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

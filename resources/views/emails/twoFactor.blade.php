@@ -8,5 +8,6 @@
 <body>
     <h1>Código de Verificación</h1>
     <p>Tu código de verificación es: <strong>{{ $twoFactorCode }}</strong></p>
+    <p>Este código expira en 15 minutos.</p>
 </body>
 </html>
