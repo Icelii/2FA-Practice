@@ -34,6 +34,16 @@
                         <div class="invalid-feedback mb-2">{{ $message }}</div>
                     @enderror
 
+                    <div class="mb-3 mt-3">
+                        {!! NoCaptcha::renderJs('es') !!}
+                        {!! NoCaptcha::display() !!}
+                    </div>
+                    @if ($errors->has('g-recaptcha-response'))
+                        <div class="error-message">
+                            {{ $errors->first('g-recaptcha-response') }}
+                        </div>
+                    @endif
+
                     <button type="submit" class="btn btnRegister">Verificar</button>
                 </form>
             </div>

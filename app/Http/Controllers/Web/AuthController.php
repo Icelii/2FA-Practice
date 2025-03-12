@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -60,7 +61,7 @@ class AuthController extends Controller
     {
         $url = URL::temporarySignedRoute(
             'activate.account',
-            now()->addMinutes(30),
+            now()->addDays(30),
             ['email' => $user->email]
         );
 
@@ -87,7 +88,7 @@ class AuthController extends Controller
 
         $this->sendActivationEmail($user);
 
-        return redirect()->route('login.form')->with('success', 'Registro exitoso. Por favor, active su cuenta.');
+        return redirect()->route('login.form')->with('activation_message', 'Por favor, activa tu cuenta antes de iniciar sesión.');
     }
 
     /**
@@ -100,9 +101,21 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->email)->whereNotNull('email_verified_at')->first();
+        $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user) {
+            return back()->withErrors([
+                'credentials' => 'Datos incorrectos.',
+            ]);
+        }
+    
+        if (is_null($user->email_verified_at)) {
+            return back()->withErrors([
+                'activation' => 'Revisa tu correo para activarla.',
+            ]);
+        }
+    
+        if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'credentials' => 'Datos incorrectos.',
             ]);
@@ -164,11 +177,26 @@ class AuthController extends Controller
 
         $email = $url->input('email');
         $user = User::where('email', $email)->whereNotNull('email_verified_at')->first();
-        
+
+        $validator = Validator::make($request->all(), [
+            'g-recaptcha-response' => 'required|captcha'
+        ], [
+            'g-recaptcha-response.required' => 'Debe completar el reCAPTCHA.',
+            'g-recaptcha-response.captcha' => 'La verificación reCAPTCHA ha fallado.'
+        ]);
+    
+        if ($validator->fails()) {
+            return back()->withErrors($validator)
+                         ->withInput()
+                         ->with('signedUrl', $request->input('signedUrl'));
+        }
+
         if (!$user || Crypt::decryptString($user->two_factor_code) !== $request->code) {
             Log::warning("Código de autenticación incorrecto", ['email' => $user->email ?? 'desconocido']);
-            return redirect()->route('twofactor.form')->withErrors(['message' => 'Código incorrecto.']);
-        }
+            return back()->withErrors(['message' => 'Código incorrecto.'])
+                         ->withInput()
+                         ->with('signedUrl', $request->input('signedUrl'));
+        }        
 
         Auth::login($user);
         Log::info("Usuario autenticado con éxito", ['email' => $user->email]);
