@@ -7,57 +7,88 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Proyecto Laravel 9 - Autenticación con Doble Factor y reCAPTCHA
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Este proyecto es una aplicación web desarrollada en Laravel 9 que implementa un sistema de autenticación con doble factor (2FA) y reCAPTCHA de Google, así como un sistema de registro de usuarios.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Características
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Registro de usuarios.**
+- **Inicio de sesión con autenticación de doble factor (2FA).**
+- **Implementación de Google reCAPTCHA en el login y registro.**
 
-## Learning Laravel
+## Requisitos previos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Antes de comenzar, asegúrate de tener instalado:
+- **PHP >= 8.0**
+- **Composer**
+- **MySQL**
+- **Laravel 9**
+- **Una cuenta en Google reCAPTCHA para obtener las claves de API.**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Instalación
 
-## Laravel Sponsors
+### 1. Clonar el repositorio
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+```bash
+ git clone https://github.com/Icelii/2FA-Practice
+ cd 2FA-Practice
+```
 
-### Premium Partners
+### 2. Instalar dependencias
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+```bash
+ composer install
+```
 
-## Contributing
+### 3. Configurar variables de entorno
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Copia el archivo de ejemplo y configúralo:
 
-## Code of Conduct
+```bash
+ cp .env.example .env
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Edita el archivo `.env` y configura la conexión a la base de datos, así como las claves de reCAPTCHA:
 
-## Security Vulnerabilities
+```
+ DB_CONNECTION=mysql
+ DB_HOST=127.0.0.1
+ DB_PORT=3306
+ DB_DATABASE=bd
+ DB_USERNAME=username
+ DB_PASSWORD=password
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+ RECAPTCHA_SITE_KEY=your_public_key
+ RECAPTCHA_SECRET_KEY=your_secret_key
+```
+
+### 4. Generar la clave de aplicación
+
+```bash
+ php artisan key:generate
+```
+
+### 5. Ejecutar migraciones y seeders
+
+```bash
+ php artisan migrate --seed
+```
+
+### 6. Iniciar el servidor
+
+```bash
+ php artisan serve
+```
+
+La aplicación estará disponible en `http://127.0.0.1:8000`.
+
+## Uso
+
+1. Regístrate en la aplicación con un correo válido.
+2. Activa tu cuenta mediante el correo enviado.
+3. Inicia sesión y verifica la autenticación de doble factor.
+4. Introduce el código enviado para completar el acceso.
 
 ## License
 

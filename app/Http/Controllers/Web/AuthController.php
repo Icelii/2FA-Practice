@@ -61,7 +61,7 @@ class AuthController extends Controller
     {
         $url = URL::temporarySignedRoute(
             'activate.account',
-            now()->addDays(30),
+            now()->addMinutes(30),
             ['email' => $user->email]
         );
 
@@ -105,7 +105,7 @@ class AuthController extends Controller
 
         if (!$user) {
             return back()->withErrors([
-                'credentials' => 'Datos incorrectos.',
+                'credentials' => 'La cuenta no existe.',
             ]);
         }
     
