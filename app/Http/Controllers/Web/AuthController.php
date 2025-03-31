@@ -150,7 +150,7 @@ class AuthController extends Controller
     public function twoFactorForm(Request $request)
     {
         $signedUrl = $request->session()->get('signedUrl');
-        return view('auth.twofactorCode', ["signedUrl" => $signedUrl]);
+        return view('auth.twoFactorCode', ["signedUrl" => $signedUrl]);
     }
 
     /**
